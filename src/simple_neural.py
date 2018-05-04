@@ -1,54 +1,60 @@
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-
-import numpy as np
 import tensorflow as tf
 
-# Define the data: define some inputs, x, and the expected output for each input, y_true
-x = tf.constant(np.array([[0, 0, 1],
-                          [0, 1, 1],
-                          [1, 0, 1],
-                          [1, 1, 1]]), dtype=tf.float32)
-y_true = tf.constant(np.array([[0, 0, 1, 1]]).T, dtype=tf.float32)
+# parameters for the net
+syn0 = tf.Variable(tf.random_uniform(shape=[3, 1], minval=-1, maxval=1, name='syn0'))
 
-# Define the model:
-# - build a simple linear model, with 1 output
-
-linear_model = tf.layers.Dense(units=1)
-y_pred = linear_model(x)
-# - loss
-loss = tf.losses.mean_squared_error(labels=y_true, predictions=y_pred)
-# - train flow
-optimizer = tf.train.GradientDescentOptimizer(learning_rate=0.01)
-train = optimizer.minimize(loss)
-
-# Training: evaluate the predictions
-init = tf.global_variables_initializer()
-summaries = tf.summary.merge_all()
-
-# - start session
+# start session
 sess = tf.Session()
-sess.run(init)
 
-# writer = tf.summary.FileWriter("logs", sess.graph)
 
-for i in range(1000):
-    _, loss_value = sess.run((train, loss))
-    # print(loss_value)
+def train():
+    # placeholders
+    x = tf.placeholder(tf.float32, [4, 3], name='x-inputs')
+    y = tf.placeholder(tf.float32, [4, 1], name='y-inputs')
 
-# Print y_pred of input training data
-print(sess.run(y_pred))
+    # set up the model calculations
+    l1 = tf.sigmoid(tf.matmul(x, syn0))
 
-# TEST
-print(sess.run(y_pred, feed_dict={x: np.array([[0, 0, 0],
-                                               [0, 0, 1],
-                                               [0, 1, 0],
-                                               [0, 1, 1]])}))
+    # cost function is avg error over training samples
+    cost = tf.losses.mean_squared_error(labels=y, predictions=l1)
 
-print(sess.run(y_pred, feed_dict={x: np.array([[1, 0, 0],
-                                               [1, 0, 1],
-                                               [1, 1, 0],
-                                               [1, 1, 1]])}))
-# - close session
+    # training step is gradient descent
+    train_step = tf.train.GradientDescentOptimizer(learning_rate=0.01).minimize(cost)
+
+    # declare training data
+    training_x = [[0, 0, 1], [0, 1, 1], [1, 0, 1], [1, 1, 1]]
+    training_y = [[0], [0], [1], [1]]
+
+    # init session
+    init = tf.global_variables_initializer()
+    sess.run(init)
+
+    # training
+    for i in range(10000):
+        sess.run(train_step, feed_dict={x: training_x, y: training_y})
+
+
+def test(inputs):
+    # redefine the shape of the input to a single unit with 2 features
+    xtest = tf.placeholder(tf.float32, [1, 3], name='x-inputs')
+
+    # redefine the model in terms of that new input shape
+    output = tf.sigmoid(tf.matmul(xtest, syn0))
+
+    print(inputs, '1' if (sess.run(output, feed_dict={xtest: [inputs]})[0][0] > 0.5) else '0')
+
+
+print('Start training')
+train()
+
+print('Start testing')
+test([0, 0, 0])
+test([0, 0, 1])
+test([0, 1, 0])
+test([0, 1, 1])
+test([1, 0, 0])
+test([1, 0, 1])
+test([1, 1, 0])
+test([1, 1, 1])
+
 sess.close()
