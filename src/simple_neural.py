@@ -23,6 +23,7 @@ def variable_summaries(var):
 
 
 def train():
+    train_writer = None
     # placeholders
     x = tf.placeholder(tf.float32, [4, 3], name='x-inputs')
     y = tf.placeholder(tf.float32, [4, 1], name='y-inputs')
@@ -52,7 +53,7 @@ def train():
 
     # training
     for i in range(10000):
-        if en_tensorboard is True and train_writer is not None:
+        if en_tensorboard:
             merged = tf.summary.merge_all()
             summary, batch_loss, new_state, _ = sess.run([merged, cost, l1, train_step],
                                                          feed_dict={x: training_x, y: training_y})
