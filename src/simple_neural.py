@@ -31,7 +31,7 @@ summaries = tf.summary.merge_all()
 sess = tf.Session()
 sess.run(init)
 
-writer = tf.summary.FileWriter("logs", sess.graph)
+# writer = tf.summary.FileWriter("logs", sess.graph)
 
 for i in range(1000):
     _, loss_value = sess.run((train, loss))
