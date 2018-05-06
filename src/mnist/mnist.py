@@ -154,7 +154,7 @@ def main(_):
     train_epochs = 40
     batch_size = 100
     stop_threshold = 0.9
-    is_training = True
+    is_training = False
 
     # Set up training and evaluation input functions.
     def train_input_fn():
@@ -207,7 +207,7 @@ def main(_):
     Input data: 28x28 grey format, float32 and background is black = 0.0
     """
 
-    np.set_printoptions(precision=8, suppress=True)
+    np.set_printoptions(precision=1, suppress=True)
     predict_input_fn = tf.estimator.inputs.numpy_input_fn(
         x={'image': np.load('images/examples.npy')},
         # x=np.load('images/examples.npy'),

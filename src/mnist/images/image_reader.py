@@ -4,9 +4,9 @@ from skimage import io
 
 
 def load_image(filename, revert=False):
-    im = io.imread(os.path.join('data', filename), as_grey=True).astype('float32')
+    im = np.array(io.imread(os.path.join('data', filename), as_grey=True), dtype=np.float32)
     if revert:
-        im = np.vectorize(lambda t: 1 - t)(im)
+        im = np.vectorize(lambda t: 1.0 - t)(im)
     return im
 
 
@@ -30,7 +30,7 @@ array([[1, 2, 3],
 np.save('examples.npy', np.array([load_image('example0.png'),
                                   load_image('example1.png'),
                                   load_image('example3.png', True),
-                                  load_image('example5.png', True)]))
+                                  load_image('example5.png', True)], dtype=np.float32))
 print(np.load('examples.npy'))
 
 """
