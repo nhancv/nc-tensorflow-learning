@@ -8,11 +8,40 @@
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
-
 from src.mnist import dataset
 import tensorflow as tf
+import numbers
 
 tf.logging.set_verbosity(tf.logging.INFO)
+
+
+def past_stop_threshold(stop_threshold, eval_metric):
+    """Return a boolean representing whether a model should be stopped.
+    Args:
+      stop_threshold: float, the threshold above which a model should stop
+        training.
+      eval_metric: float, the current value of the relevant metric to check.
+    Returns:
+      True if training should stop, False otherwise.
+    Raises:
+      ValueError: if either stop_threshold or eval_metric is not a number
+    """
+    if stop_threshold is None:
+        return False
+
+    if not isinstance(stop_threshold, numbers.Number):
+        raise ValueError("Threshold for checking stop conditions must be a number.")
+    if not isinstance(eval_metric, numbers.Number):
+        raise ValueError("Eval metric being checked against stop conditions "
+                         "must be a number.")
+
+    if eval_metric >= stop_threshold:
+        tf.logging.info(
+            "Stop threshold of {} was passed with metric value {}.".format(
+                stop_threshold, eval_metric))
+        return True
+
+    return False
 
 
 def cnn_model_fn(features, labels, mode):
@@ -110,6 +139,10 @@ def cnn_model_fn(features, labels, mode):
 def main(_):
     # Load training and eval data
     data_dir = '/tmp/mnist_data'
+    epochs_between_eval = 15
+    train_epochs = 40
+    batch_size = 100
+    stop_threshold = 0.7
 
     # Set up training and evaluation input functions.
     def train_input_fn():
@@ -119,22 +152,15 @@ def main(_):
         # randomness, while smaller sizes use less memory. MNIST is a small
         # enough dataset that we can easily shuffle the full epoch.
         ds = dataset.train(data_dir)
-        ds = ds.cache().shuffle(buffer_size=50000).batch(100)
+        ds = ds.cache().shuffle(buffer_size=50000).batch(batch_size)
 
         # Iterate through the dataset a set number (`epochs_between_evals`) of times
         # during each training session.
-        ds = ds.repeat(40)
+        ds = ds.repeat(epochs_between_eval)
         return ds
 
     def eval_input_fn():
-        return dataset.test(data_dir).batch(
-            128).make_one_shot_iterator().get_next()
-
-    # mnist = dataset.train('data')
-    # train_data = mnist.train.images  # Returns np.array
-    # train_labels = np.asarray(mnist.train.labels, dtype=np.int32)
-    # eval_data = mnist.test.images  # Returns np.array
-    # eval_labels = np.asarray(mnist.test.labels, dtype=np.int32)
+        return dataset.test(data_dir).batch(batch_size).make_one_shot_iterator().get_next()
 
     # Create the Estimator
     mnist_classifier = tf.estimator.Estimator(
@@ -146,26 +172,13 @@ def main(_):
     logging_hook = tf.train.LoggingTensorHook(
         tensors=tensors_to_log, every_n_iter=100)
 
-    # Train the model
-    # train_input_fn = tf.estimator.inputs.numpy_input_fn(
-    #     x={"x": train_data},
-    #     y=train_labels,
-    #     batch_size=100,
-    #     num_epochs=None,
-    #     shuffle=True)
-    mnist_classifier.train(
-        input_fn=train_input_fn,
-        steps=200,
-        hooks=[logging_hook])
+    for _ in range(train_epochs):
+        mnist_classifier.train(input_fn=train_input_fn, steps=200, hooks=[logging_hook])
+        eval_results = mnist_classifier.evaluate(input_fn=eval_input_fn)
+        print('\nEvaluation results:\n\t%s\n' % eval_results)
 
-    # Evaluate the model and print results
-    # eval_input_fn = tf.estimator.inputs.numpy_input_fn(
-    #     x={"x": eval_data},
-    #     y=eval_labels,
-    #     num_epochs=1,
-    #     shuffle=False)
-    eval_results = mnist_classifier.evaluate(input_fn=eval_input_fn)
-    print(eval_results)
+        if past_stop_threshold(stop_threshold, eval_results['accuracy']):
+            break
 
 
 if __name__ == "__main__":
