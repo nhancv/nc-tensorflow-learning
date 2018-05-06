@@ -154,7 +154,7 @@ def main(_):
     train_epochs = 40
     batch_size = 100
     stop_threshold = 0.9
-    is_training = False
+    is_training = True
 
     # Set up training and evaluation input functions.
     def train_input_fn():
@@ -201,22 +201,26 @@ def main(_):
                 'image': image,
             })
             mnist_classifier.export_savedmodel(export_dir, input_fn)
-    else:
-        print('Predict')
-        np.set_printoptions(precision=8, suppress=True)
-        predict_input_fn = tf.estimator.inputs.numpy_input_fn(
-            x={'image': np.load('images/examples.npy')},
-            # x=np.load('images/examples.npy'),
-            num_epochs=1,
-            shuffle=False)
 
-        predict_results = mnist_classifier.predict(input_fn=predict_input_fn)
-        res = []
-        for el in predict_results:
-            probability = el['probabilities']
-            res.append(probability.argmax(axis=0))
-            print(probability)
-        print(res)
+    print('Predict')
+    """
+    Input data: 28x28 grey format, float32 and background is black = 0.0
+    """
+
+    np.set_printoptions(precision=8, suppress=True)
+    predict_input_fn = tf.estimator.inputs.numpy_input_fn(
+        x={'image': np.load('images/examples.npy')},
+        # x=np.load('images/examples.npy'),
+        num_epochs=1,
+        shuffle=False)
+
+    predict_results = mnist_classifier.predict(input_fn=predict_input_fn)
+    res = []
+    for el in predict_results:
+        probability = el['probabilities']
+        res.append(probability.argmax(axis=0))
+        print(probability)
+    print(res)
 
 
 if __name__ == "__main__":

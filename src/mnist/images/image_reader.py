@@ -3,8 +3,11 @@ import numpy as np
 from skimage import io
 
 
-def load_image(filename):
-    return io.imread(os.path.join('data', filename), as_grey=True).astype('float32')
+def load_image(filename, revert=False):
+    im = io.imread(os.path.join('data', filename), as_grey=True).astype('float32')
+    if revert:
+        im = np.vectorize(lambda t: 1 - t)(im)
+    return im
 
 
 def save_image(filename, arr):
@@ -24,11 +27,14 @@ https://docs.scipy.org/doc/numpy-1.14.0/reference/generated/numpy.load.html
 array([[1, 2, 3],
        [4, 5, 6]])
 """
-np.save('examples.npy', np.array([load_image('example3.png'), load_image('example5.png')]))
+np.save('examples.npy', np.array([load_image('example0.png'),
+                                  load_image('example1.png'),
+                                  load_image('example3.png', True),
+                                  load_image('example5.png', True)]))
 print(np.load('examples.npy'))
 
 """
 Predict: saved_model_cli run --dir /tmp/mnist_saved_model/TIMESTAMP --tag_set serve --signature_def classify --inputs image=examples.npy
-saved_model_cli run --dir /tmp/mnist_saved_model/1525610660 --tag_set serve --signature_def classify --inputs image=/Volumes/Data/Projects/nhancv/nc-tensorflow-learning/src/mnist/images/examples.npy
+saved_model_cli run --dir /tmp/mnist_saved_model/1525618088 --tag_set serve --signature_def classify --inputs image=/Volumes/Data/Projects/nhancv/nc-tensorflow-learning/src/mnist/images/examples.npy
 
 """
