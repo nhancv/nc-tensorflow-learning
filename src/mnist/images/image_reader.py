@@ -7,7 +7,10 @@ def load_image(filename):
     return io.imread(os.path.join('data', filename))
 
 
-ex3 = load_image('example3.png')
-io.imshow(ex3)
-io.show()
-# io.imsave('data/test.png', ex3)
+def save_image(filename, arr):
+    return io.imsave(os.path.join('data', filename), arr)
+
+
+def show_image(filename):
+    io.imshow(load_image(filename))
+    io.show()
