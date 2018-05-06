@@ -4,7 +4,7 @@ from skimage import io
 
 
 def load_image(filename):
-    return io.imread(os.path.join('data', filename))
+    return io.imread(os.path.join('data', filename), as_grey=True).astype('float32')
 
 
 def save_image(filename, arr):
@@ -14,3 +14,21 @@ def save_image(filename, arr):
 def show_image(filename):
     io.imshow(load_image(filename))
     io.show()
+
+
+"""
+https://docs.scipy.org/doc/numpy-1.14.0/reference/generated/numpy.load.html
+
+>>> np.save('/tmp/123', np.array([[1, 2, 3], [4, 5, 6]]))
+>>> np.load('/tmp/123.npy')
+array([[1, 2, 3],
+       [4, 5, 6]])
+"""
+np.save('examples.npy', np.array([load_image('example3.png'), load_image('example5.png')]))
+print(np.load('examples.npy'))
+
+"""
+Predict: saved_model_cli run --dir /tmp/mnist_saved_model/TIMESTAMP --tag_set serve --signature_def classify --inputs image=examples.npy
+saved_model_cli run --dir /tmp/mnist_saved_model/1525610660 --tag_set serve --signature_def classify --inputs image=/Volumes/Data/Projects/nhancv/nc-tensorflow-learning/src/mnist/images/examples.npy
+
+"""

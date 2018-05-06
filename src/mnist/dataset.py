@@ -26,6 +26,7 @@ import tempfile
 import numpy as np
 from six.moves import urllib
 import tensorflow as tf
+from skimage import io
 
 
 def read32(bytestream):
@@ -116,3 +117,7 @@ def train(directory):
 def test(directory):
     """tf.data.Dataset object for MNIST test data."""
     return dataset(directory, 't10k-images-idx3-ubyte', 't10k-labels-idx1-ubyte')
+
+
+# data_dir = '/tmp/mnist_data'
+# train(data_dir)

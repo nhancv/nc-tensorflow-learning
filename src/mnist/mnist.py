@@ -8,7 +8,10 @@
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
+
 from src.mnist import dataset
+
+import numpy as np
 import tensorflow as tf
 import numbers
 
@@ -49,7 +52,11 @@ def cnn_model_fn(features, labels, mode):
     # Input Layer
     # Reshape X to 4-D tensor: [batch_size, width, height, channels]
     # MNIST images are 28x28 pixels, and have one color channel
-    input_layer = tf.reshape(features, [-1, 28, 28, 1])
+    image = features
+    if isinstance(image, dict):
+        image = features['image']
+
+    input_layer = tf.reshape(image, [-1, 28, 28, 1])
 
     # Convolutional Layer #1
     # Computes 32 features using a 5x5 filter with ReLU activation.
@@ -115,7 +122,9 @@ def cnn_model_fn(features, labels, mode):
         "probabilities": tf.nn.softmax(logits, name="softmax_tensor")
     }
     if mode == tf.estimator.ModeKeys.PREDICT:
-        return tf.estimator.EstimatorSpec(mode=mode, predictions=predictions)
+        return tf.estimator.EstimatorSpec(mode=mode, predictions=predictions, export_outputs={
+            'classify': tf.estimator.export.PredictOutput(predictions)
+        })
 
     # Calculate Loss (for both TRAIN and EVAL modes)
     loss = tf.losses.sparse_softmax_cross_entropy(labels=labels, logits=logits)
@@ -138,11 +147,14 @@ def cnn_model_fn(features, labels, mode):
 
 def main(_):
     # Load training and eval data
+    export_dir = '/tmp/mnist_saved_model'
+    model_dir = "/tmp/mnist_convnet_model"
     data_dir = '/tmp/mnist_data'
     epochs_between_eval = 15
     train_epochs = 40
     batch_size = 100
-    stop_threshold = 0.7
+    stop_threshold = 0.9
+    is_training = False
 
     # Set up training and evaluation input functions.
     def train_input_fn():
@@ -164,7 +176,7 @@ def main(_):
 
     # Create the Estimator
     mnist_classifier = tf.estimator.Estimator(
-        model_fn=cnn_model_fn, model_dir="/tmp/mnist_convnet_model")
+        model_fn=cnn_model_fn, model_dir=model_dir)
 
     # Set up logging for predictions
     # Log the values in the "Softmax" tensor with label "probabilities"
@@ -172,13 +184,39 @@ def main(_):
     logging_hook = tf.train.LoggingTensorHook(
         tensors=tensors_to_log, every_n_iter=100)
 
-    for _ in range(train_epochs):
-        mnist_classifier.train(input_fn=train_input_fn, steps=200, hooks=[logging_hook])
-        eval_results = mnist_classifier.evaluate(input_fn=eval_input_fn)
-        print('\nEvaluation results:\n\t%s\n' % eval_results)
+    # Train and evaluate model.
+    if is_training:
+        for _ in range(train_epochs):
+            mnist_classifier.train(input_fn=train_input_fn, steps=200, hooks=[logging_hook])
+            eval_results = mnist_classifier.evaluate(input_fn=eval_input_fn)
+            print('\nEvaluation results:\n\t%s\n' % eval_results)
 
-        if past_stop_threshold(stop_threshold, eval_results['accuracy']):
-            break
+            if past_stop_threshold(stop_threshold, eval_results['accuracy']):
+                break
+
+        # Export the model
+        if export_dir is not None:
+            image = tf.placeholder(tf.float32, [None, 28, 28])
+            input_fn = tf.estimator.export.build_raw_serving_input_receiver_fn({
+                'image': image,
+            })
+            mnist_classifier.export_savedmodel(export_dir, input_fn)
+    else:
+        print('Predict')
+        np.set_printoptions(precision=8, suppress=True)
+        predict_input_fn = tf.estimator.inputs.numpy_input_fn(
+            x={'image': np.load('images/examples.npy')},
+            # x=np.load('images/examples.npy'),
+            num_epochs=1,
+            shuffle=False)
+
+        predict_results = mnist_classifier.predict(input_fn=predict_input_fn)
+        res = []
+        for el in predict_results:
+            probability = el['probabilities']
+            res.append(probability.argmax(axis=0))
+            print(probability)
+        print(res)
 
 
 if __name__ == "__main__":
