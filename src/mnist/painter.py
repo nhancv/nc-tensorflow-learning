@@ -1,31 +1,41 @@
 from Tkinter import *
-from tkColorChooser import askcolor
 
 
 class Paint(object):
-    DEFAULT_PEN_SIZE = 5.0
-    DEFAULT_COLOR = 'black'
+    DEFAULT_COLOR = 'white'
 
     def __init__(self):
         self.root = Tk()
+        self.root.resizable(False, False)
 
-        self.pen_button = Button(self.root, text='pen', command=self.use_pen)
-        self.pen_button.grid(row=0, column=0)
+        self.c = Canvas(self.root, bg='black', width=100, height=100)
+        self.c.grid(row=0, columnspan=6)
 
-        self.brush_button = Button(self.root, text='brush', command=self.use_brush)
-        self.brush_button.grid(row=0, column=1)
-
-        self.color_button = Button(self.root, text='color', command=self.choose_color)
-        self.color_button.grid(row=0, column=2)
+        self.infoP = PanedWindow(self.root, orient=VERTICAL, width=100, height=100)
+        self.infoP.grid(row=0, column=6)
 
         self.eraser_button = Button(self.root, text='eraser', command=self.use_eraser)
-        self.eraser_button.grid(row=0, column=3)
-
+        self.eraser_button.grid(row=0)
         self.choose_size_button = Scale(self.root, from_=1, to=10, orient=HORIZONTAL)
-        self.choose_size_button.grid(row=0, column=4)
+        self.choose_size_button.grid(row=1)
 
-        self.c = Canvas(self.root, bg='white', width=600, height=600)
-        self.c.grid(row=1, columnspan=5)
+        # self.c2 = Canvas(self.root, bg='white', width=100, height=100)
+        # self.c2.grid(row=1, column=6, columnspan=10)
+
+        # self.text = Text(self.root)
+        # self.text.grid(row=2)
+        # self.text.bind("<Key>", lambda e: "break")
+        # self.text.insert(INSERT, "Predict: ")
+
+        self.predict_res = StringVar()
+        self.predict_info = Entry(self.root, textvariable=self.predict_res, state=DISABLED, disabledforeground='black')
+        self.predict_info.grid(row=3)
+        self.predict_res.set('predict...')
+
+        self.infoP.add(self.eraser_button)
+        self.infoP.add(self.choose_size_button)
+        # self.infoP.add(self.text)
+        self.infoP.add(self.predict_info)
 
         self.setup()
         self.root.mainloop()
@@ -33,42 +43,19 @@ class Paint(object):
     def setup(self):
         self.old_x = None
         self.old_y = None
-        self.line_width = self.choose_size_button.get()
         self.color = self.DEFAULT_COLOR
-        self.eraser_on = False
-        self.active_button = self.pen_button
         self.c.bind('<B1-Motion>', self.paint)
         self.c.bind('<ButtonRelease-1>', self.reset)
 
-    def use_pen(self):
-        self.activate_button(self.pen_button)
-
-    def use_brush(self):
-        self.activate_button(self.brush_button)
-
-    def choose_color(self):
-        self.eraser_on = False
-        self.color = askcolor(color=self.color)[1]
-
     def use_eraser(self):
-        self.activate_button(self.eraser_button, eraser_mode=True)
-
-    # TODO: reset canvas
-    # TODO: undo and redo
-    # TODO: draw triangle, rectangle, oval, text
-
-    def activate_button(self, some_button, eraser_mode=False):
-        self.active_button.config(relief=RAISED)
-        some_button.config(relief=SUNKEN)
-        self.active_button = some_button
-        self.eraser_on = eraser_mode
+        self.c.delete("all")
+        self.predict_res.set('predict...')
 
     def paint(self, event):
         self.line_width = self.choose_size_button.get()
-        paint_color = 'white' if self.eraser_on else self.color
         if self.old_x and self.old_y:
             self.c.create_line(self.old_x, self.old_y, event.x, event.y,
-                               width=self.line_width, fill=paint_color,
+                               width=self.line_width, fill=self.color,
                                capstyle=ROUND, smooth=TRUE, splinesteps=36)
         self.old_x = event.x
         self.old_y = event.y
