@@ -145,7 +145,7 @@ def cnn_model_fn(features, labels, mode):
         mode=mode, loss=loss, eval_metric_ops=eval_metric_ops)
 
 
-def main(_):
+def running(is_training=False, predict_input=np.load('images/examples.npy')):
     # Load training and eval data
     export_dir = '/tmp/mnist_saved_model'
     model_dir = "/tmp/mnist_convnet_model"
@@ -154,7 +154,6 @@ def main(_):
     train_epochs = 40
     batch_size = 100
     stop_threshold = 0.9
-    is_training = False
 
     # Set up training and evaluation input functions.
     def train_input_fn():
@@ -209,7 +208,7 @@ def main(_):
 
     np.set_printoptions(precision=1, suppress=True)
     predict_input_fn = tf.estimator.inputs.numpy_input_fn(
-        x={'image': np.load('images/examples.npy')},
+        x={'image': predict_input},
         # x=np.load('images/examples.npy'),
         num_epochs=1,
         shuffle=False)
@@ -221,6 +220,12 @@ def main(_):
         res.append(probability.argmax(axis=0))
         print(probability)
     print(res)
+    if is_training is False:
+        return res
+
+
+def main(_):
+    running(is_training=True)
 
 
 if __name__ == "__main__":
