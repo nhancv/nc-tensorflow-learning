@@ -30,7 +30,8 @@ array([[1, 2, 3],
 np.save('examples.npy', np.array([load_image('example0.png'),
                                   load_image('example1.png'),
                                   load_image('example3.png', True),
-                                  load_image('example5.png', True)], dtype=np.float32))
+                                  load_image('example5.png', True),
+                                  load_image('example7.png')], dtype=np.float32))
 print(np.load('examples.npy'))
 
 """

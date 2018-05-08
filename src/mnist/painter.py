@@ -35,7 +35,7 @@ class Paint(object):
 
         self.eraser_button = Button(self.root, text='eraser', command=self.use_eraser)
         self.eraser_button.grid(row=0)
-        self.choose_size_button = Scale(self.root, from_=20, to=30, orient=HORIZONTAL)
+        self.choose_size_button = Scale(self.root, from_=30, to=50, orient=HORIZONTAL)
         self.choose_size_button.grid(row=1)
 
         self.predict_res = StringVar()
@@ -74,8 +74,8 @@ class Paint(object):
     def predict(self):
         img = ImageGrab.grab(bbox=self._canvas()).convert('L')
         img.thumbnail((28, 28), Image.ANTIALIAS)
-        img.save("painter.png")
-        predict_input = np.array([np.array(ski_io.imread("painter.png", as_grey=True), dtype=np.float32)])
+        img.save("/tmp/painter.png")
+        predict_input = np.array([np.array(ski_io.imread("/tmp/painter.png", as_grey=True), dtype=np.float32)])
         predict_res = mnist.running(is_training=False, predict_input=predict_input)
         self.predict_res.set('Predict: {0}'.format(predict_res))
 
