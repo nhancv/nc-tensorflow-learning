@@ -3,7 +3,7 @@
 # - https://github.com/tensorflow/models/blob/master/official/mnist/mnist.py
 # https://www.tensorflow.org/tutorials/layers
 # - https://github.com/tensorflow/tensorflow/blob/r1.8/tensorflow/examples/tutorials/layers/cnn_mnist.py
-
+# @nhancv
 
 from __future__ import absolute_import
 from __future__ import division
