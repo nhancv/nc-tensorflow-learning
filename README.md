@@ -16,8 +16,7 @@ python -m Tkinter
 
 ### Run: 
 ```
-cd src/mnist
-PYTHONPATH="${PYTHONPATH}:$(pwd)" python painter.py
+PYTHONPATH="${PYTHONPATH}:$(pwd)" python src/mnist/painter.py
 ```
 
 

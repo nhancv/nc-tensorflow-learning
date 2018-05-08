@@ -11,6 +11,7 @@ from __future__ import print_function
 
 from src.mnist import dataset
 
+import os
 import numpy as np
 import tensorflow as tf
 import numbers
@@ -145,7 +146,7 @@ def cnn_model_fn(features, labels, mode):
         mode=mode, loss=loss, eval_metric_ops=eval_metric_ops)
 
 
-def running(is_training=False, predict_input=np.load('images/examples.npy')):
+def running(is_training=False, predict_input=np.load(os.path.join(os.path.dirname(__file__), 'images/examples.npy'))):
     # Load training and eval data
     export_dir = '/tmp/mnist_saved_model'
     model_dir = "/tmp/mnist_convnet_model"
