@@ -17,6 +17,7 @@ import tensorflow as tf
 import numbers
 
 tf.logging.set_verbosity(tf.logging.INFO)
+LEARNING_RATE = 1e-4
 
 
 def past_stop_threshold(stop_threshold, eval_metric):
@@ -132,7 +133,7 @@ def cnn_model_fn(features, labels, mode):
 
     # Configure the Training Op (for TRAIN mode)
     if mode == tf.estimator.ModeKeys.TRAIN:
-        optimizer = tf.train.GradientDescentOptimizer(learning_rate=0.001)
+        optimizer = tf.train.GradientDescentOptimizer(learning_rate=LEARNING_RATE)
         train_op = optimizer.minimize(
             loss=loss,
             global_step=tf.train.get_global_step())
@@ -152,7 +153,7 @@ def running(is_training=False, predict_input=np.load(os.path.join(os.path.dirnam
     model_dir = "/tmp/mnist_convnet_model"
     data_dir = '/tmp/mnist_data'
     epochs_between_eval = 15
-    train_epochs = 40
+    train_epochs = 100
     batch_size = 100
     stop_threshold = 0.9
 
@@ -187,7 +188,7 @@ def running(is_training=False, predict_input=np.load(os.path.join(os.path.dirnam
     # Train and evaluate model.
     if is_training:
         for _ in range(train_epochs):
-            mnist_classifier.train(input_fn=train_input_fn, steps=200, hooks=[logging_hook])
+            mnist_classifier.train(input_fn=train_input_fn, hooks=[logging_hook])
             eval_results = mnist_classifier.evaluate(input_fn=eval_input_fn)
             print('\nEvaluation results:\n\t%s\n' % eval_results)
 
