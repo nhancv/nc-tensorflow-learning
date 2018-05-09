@@ -149,9 +149,14 @@ def cnn_model_fn(features, labels, mode):
 
 def running(is_training=False, predict_input=np.load(os.path.join(os.path.dirname(__file__), 'images/examples.npy'))):
     # Load training and eval data
-    export_dir = '/tmp/mnist_saved_model'
-    model_dir = "/tmp/mnist_convnet_model"
-    data_dir = '/tmp/mnist_data'
+    # export_dir = "/tmp/mnist_saved_model"
+    # model_dir = "/tmp/mnist_convnet_model"
+    # data_dir = "/tmp/mnist_data"
+    print(os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'mnist_saved_model'))
+    export_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'model/mnist_saved_model')
+    model_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'model/mnist_convnet_model')
+    data_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'model/mnist_data')
+
     epochs_between_eval = 15
     train_epochs = 10
     batch_size = 100
