@@ -153,7 +153,7 @@ def running(is_training=False, predict_input=np.load(os.path.join(os.path.dirnam
     model_dir = "/tmp/mnist_convnet_model"
     data_dir = '/tmp/mnist_data'
     epochs_between_eval = 15
-    train_epochs = 100
+    train_epochs = 10
     batch_size = 100
     stop_threshold = 0.9
 
